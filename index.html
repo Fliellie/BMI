@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Python Execution Visualizer - BMI & Thời Trang Tkinter</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'Courier New', 'monospace'],
+          },
+          colors: {
+            vscode: {
+              bg: '#1e1e2e',
+              gutter: '#181825',
+              lineHighlight: 'rgba(250, 179, 135, 0.12)',
+              text: '#cdd6f4',
+              keyword: '#cba6f7',
+              fn: '#89b4fa',
+              string: '#a6e3a1',
+              number: '#fab387',
+              comment: '#6c7086',
+              operator: '#89dceb',
+              var: '#f38ba8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #111827;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #374151;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4b5563;
+    }
+
+    /* Active Line Highlight Transition */
+    .active-line-bg {
+      transition: top 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Code Line Highlight Style */
+    .code-line {
+      min-height: 26px;
+      line-height: 26px;
+    }
+
+    /* Pulse animation for variable updates */
+    @keyframes varPulse {
+      0% { background-color: rgba(59, 130, 246, 0.4); }
+      100% { background-color: transparent; }
+    }
+    .var-updated {
+      animation: varPulse 0.8s ease-out;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+  <!-- Header Header Header -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/20">
+          <i class="fa-solid fa-code"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight text-white flex items-center gap-2">
+            Python Code Visualizer 
+            <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Mô phỏng từng bước</span>
+          </h1>
+          <p class="text-xs text-slate-400">Trực quan hóa vòng lặp & câu lệnh rẽ nhánh Tkinter BMI Advisor</p>
+        </div>
+      </div>
+
+      <!-- Quick Preset Selector -->
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <span class="text-slate-400 font-medium">Mẫu thử nhanh:</span>
+        <button onclick="applyPreset(50, 167)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-amber-600/30 hover:border-amber-500/50 border border-slate-700 transition flex items-center gap-1.5 text-amber-300">
+          <i class="fa-solid fa-feather"></i> Gầy (BMI 17.9)
+        </button>
+        <button onclick="applyPreset(60, 168)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600/30 hover:border-emerald-500/50 border border-slate-700 transition flex items-center gap-1.5 text-emerald-300">
+          <i class="fa-solid fa-check"></i> Cân đối (BMI 21.3)
+        </button>
+        <button onclick="applyPreset(72, 165)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-orange-600/30 hover:border-orange-500/50 border border-slate-700 transition flex items-center gap-1.5 text-orange-300">
+          <i class="fa-solid fa-weight-scale"></i> Thừa cân (BMI 26.4)
+        </button>
+        <button onclick="applyPreset(88, 160)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-600/30 hover:border-rose-500/50 border border-slate-700 transition flex items-center gap-1.5 text-rose-300">
+          <i class="fa-solid fa-triangle-exclamation"></i> Béo phì (BMI 34.4)
+        </button>
+        <button onclick="applyPreset('abc', 170)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-purple-600/30 hover:border-purple-500/50 border border-slate-700 transition flex items-center gap-1.5 text-purple-300">
+          <i class="fa-solid fa-bug"></i> Lỗi nhập
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid Layout -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT PANEL: UI Demo, Control Panel & Variable Watcher -->
+    <div class="lg:col-span-5 flex flex-col gap-5">
+      
+      <!-- Control Panel Controls Card -->
+      <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-indigo-400"></i> Điều Khiển Mô Phỏng
+          </h2>
+          <span id="step-counter-badge" class="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 text-xs font-mono font-medium border border-slate-700">
+            Bước: 0 / 0
+          </span>
+        </div>
+
+        <!-- Buttons Row -->
+        <div class="grid grid-cols-4 gap-2">
+          <button id="btn-prev" onclick="stepPrev()" disabled class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-slate-800 text-slate-200 text-xs font-semibold transition flex flex-col items-center justify-center gap-1 border border-slate-700">
+            <i class="fa-solid fa-backward-step text-sm"></i>
+            <span>Step Lùi</span>
+          </button>
+          
+          <button id="btn-play" onclick="togglePlay()" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition flex flex-col items-center justify-center gap-1 shadow-lg shadow-indigo-600/30 border border-indigo-500">
+            <i id="play-icon" class="fa-solid fa-play text-sm"></i>
+            <span id="play-text">Chạy Auto</span>
+          </button>
+
+          <button id="btn-next" onclick="stepNext()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-slate-800 text-slate-200 text-xs font-semibold transition flex flex-col items-center justify-center gap-1 border border-slate-700">
+            <i class="fa-solid fa-forward-step text-sm"></i>
+            <span>Step Tới</span>
+          </button>
+
+          <button id="btn-reset" onclick="resetSimulation()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition flex flex-col items-center justify-center gap-1 border border-slate-700">
+            <i class="fa-solid fa-rotate-left text-sm"></i>
+            <span>Reset</span>
+          </button>
+        </div>
+
+        <!-- Speed Slider & Progress -->
+        <div class="space-y-2 pt-1">
+          <div class="flex justify-between items-center text-xs text-slate-400">
+            <span>Tốc độ tự động:</span>
+            <span id="speed-label" class="text-indigo-400 font-mono font-semibold">1.0 giây / step</span>
+          </div>
+          <input type="range" id="speed-slider" min="300" max="2500" step="100" value="1000" oninput="updateSpeed(this.value)" class="w-full accent-indigo-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+          <div id="progress-bar" class="bg-indigo-500 h-full w-0 transition-all duration-300"></div>
+        </div>
+      </div>
+
+      <!-- Tkinter App Visual Simulator Frame (Mockup Window) -->
+      <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col">
+        <!-- Title bar ofTkinter Window -->
+        <div class="bg-slate-800/90 px-4 py-2.5 flex items-center justify-between border-b border-slate-700/60 select-none">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-rose-500/80"></div>
+            <div class="w-3 h-3 rounded-full bg-amber-500/80"></div>
+            <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+            <span class="ml-2 text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <i class="fa-brands fa-python text-blue-400"></i> AI Tư Vấn Sức Khỏe & Thời Trang (Tkinter GUI)
+            </span>
+          </div>
+          <span class="text-[10px] bg-slate-700 px-2 py-0.5 rounded text-slate-300 font-mono">root.mainloop()</span>
+        </div>
+
+        <!-- Simulated Tkinter Window Body -->
+        <div id="tkinter-window" class="p-5 bg-slate-100 dark:bg-slate-900 flex-1 flex flex-col items-center space-y-4 relative min-h-[380px] transition-colors">
+          
+          <!-- Tkinter Title Label -->
+          <h2 class="text-lg font-bold text-purple-600 dark:text-purple-400 tracking-wide text-center">
+            AI TƯ VẤN TOÀN DIỆN
+          </h2>
+
+          <!-- Inputs Frame -->
+          <div class="w-full max-w-sm bg-slate-800/50 border border-slate-700/50 rounded-xl p-3.5 space-y-3">
+            <div class="flex items-center justify-between gap-3">
+              <label class="text-xs font-semibold text-slate-300 w-32">Cân nặng (kg):</label>
+              <input type="text" id="entry_weight" value="50" oninput="onInputChange()" class="w-full bg-slate-950 border border-slate-700 text-slate-100 font-mono text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500 transition">
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <label class="text-xs font-semibold text-slate-300 w-32">Chiều cao (cm):</label>
+              <input type="text" id="entry_height" value="167" oninput="onInputChange()" class="w-full bg-slate-950 border border-slate-700 text-slate-100 font-mono text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500 transition">
+            </div>
+          </div>
+
+          <!-- Trigger Tkinter Button -->
+          <button id="btn_tu_van" onclick="startSimulation()" class="w-full max-w-sm bg-sky-600 hover:bg-sky-500 active:scale-95 text-white font-bold text-sm py-2.5 px-4 rounded-xl shadow-lg shadow-sky-600/30 transition border border-sky-400/30 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            Phân Tích & Tư Vấn (tu_van_ai)
+          </button>
+
+          <!-- Simulated Tkinter Output Labels -->
+          <div class="w-full max-w-sm space-y-3 pt-2">
+            
+            <!-- BMI Result Label -->
+            <div id="lbl_bmi_result_box" class="p-3 bg-slate-950/80 rounded-xl border border-slate-800 text-center transition-all duration-300">
+              <div class="text-[10px] text-slate-400 uppercase tracking-wider font-medium">lbl_bmi_result</div>
+              <div id="lbl_bmi_result" class="text-sm font-bold text-slate-300 mt-0.5">
+                Chỉ số BMI: Chưa có dữ liệu
+              </div>
+            </div>
+
+            <!-- Health Result Label -->
+            <div id="lbl_health_result_box" class="p-3 bg-slate-950/80 rounded-xl border border-slate-800 transition-all duration-300">
+              <div class="text-[10px] text-slate-400 uppercase tracking-wider font-medium">lbl_health_result</div>
+              <div id="lbl_health_result" class="text-xs mt-1 leading-relaxed whitespace-pre-line text-slate-400 font-medium">
+                (Chờ thực thi code...)
+              </div>
+            </div>
+
+            <!-- Fashion Result Label -->
+            <div id="lbl_fashion_result_box" class="p-3 bg-slate-950/80 rounded-xl border border-slate-800 transition-all duration-300">
+              <div class="text-[10px] text-slate-400 uppercase tracking-wider font-medium">lbl_fashion_result</div>
+              <div id="lbl_fashion_result" class="text-xs mt-1 leading-relaxed whitespace-pre-line text-sky-400 font-medium">
+                (Chờ thực thi code...)
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Simulated Tkinter MessageBox Modal -->
+          <div id="tk-messagebox" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-20">
+            <div class="bg-slate-900 border border-rose-500/50 rounded-2xl p-5 max-w-xs w-full shadow-2xl text-center space-y-3 animate-bounce-once">
+              <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-500 flex items-center justify-center mx-auto text-xl border border-rose-500/30">
+                <i class="fa-solid fa-circle-xmark"></i>
+              </div>
+              <h3 class="font-bold text-slate-100 text-sm">Lỗi nhập liệu (ValueError)</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Vui lòng nhập số (ví dụ: 65 hoặc 170) vào ô trống!
+              </p>
+              <button onclick="closeMessageBox()" class="w-full py-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs rounded-xl transition">
+                Đóng (OK)
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Variable Watcher Panel -->
+      <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 shadow-xl space-y-3">
+        <h2 class="text-sm font-semibold text-slate-200 flex items-center justify-between">
+          <span class="flex items-center gap-2">
+            <i class="fa-solid fa-eye text-emerald-400"></i> Theo Dõi Biến (Variable Watcher)
+          </span>
+          <span class="text-[11px] text-slate-400 font-normal">Bộ nhớ RAM thực thi</span>
+        </h2>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="text-[11px] uppercase bg-slate-950 text-slate-400 border-b border-slate-800">
+              <tr>
+                <th class="py-2 px-3">Tên Biến</th>
+                <th class="py-2 px-3">Kiểu</th>
+                <th class="py-2 px-3">Giá Trị Hiện Tại</th>
+              </tr>
+            </thead>
+            <tbody id="var-watcher-tbody" class="divide-y divide-slate-800 font-mono">
+              <tr class="text-slate-500">
+                <td colspan="3" class="py-4 text-center font-sans">Chưa chạy hàm tu_van_ai()</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL: Code Editor & Execution Visualizer -->
+    <div class="lg:col-span-7 flex flex-col gap-4">
+
+      <!-- Step Explanation Banner / Log Bar -->
+      <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 shadow-xl space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-terminal text-indigo-400"></i> Diễn Giải Bước Thực Thi
+          </span>
+          <span id="eval-status-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">
+            Sẵn sàng
+          </span>
+        </div>
+        <div id="step-explanation" class="text-sm text-slate-200 leading-relaxed font-sans bg-slate-950 p-3 rounded-xl border border-slate-800/80 min-h-[64px] flex items-center">
+          Nhấn nút <strong class="text-sky-400 mx-1">Phân Tích & Tư Vấn</strong> hoặc <strong class="text-indigo-400 mx-1">Chạy Auto</strong> để bắt đầu mô phỏng từng dòng code Python.
+        </div>
+      </div>
+
+      <!-- VS Code Style Code Viewer Window -->
+      <div class="bg-vscode-bg rounded-2xl border border-slate-800 shadow-2xl flex flex-col overflow-hidden relative">
+        
+        <!-- Editor Header Tabs -->
+        <div class="bg-vscode-gutter border-b border-slate-800 px-4 py-2 flex items-center justify-between select-none">
+          <div class="flex items-center gap-2">
+            <div class="px-3 py-1 bg-vscode-bg text-xs font-mono text-indigo-300 border-t-2 border-indigo-500 rounded-t flex items-center gap-2">
+              <i class="fa-brands fa-python text-amber-400"></i> bmi_advisor.py
+            </div>
+          </div>
+          <span class="text-[11px] text-slate-400 font-mono">Python 3.10 • Tkinter</span>
+        </div>
+
+        <!-- Code Area Container -->
+        <div id="code-container" class="p-4 overflow-x-auto relative font-mono text-xs sm:text-sm leading-6 select-none min-h-[520px]">
+          
+          <!-- Moving Cursor / Line Highlight Overlay -->
+          <div id="active-line-cursor" class="absolute left-0 right-0 h-[26px] bg-amber-500/15 border-l-4 border-amber-400 active-line-bg pointer-events-none hidden z-0"></div>
+
+          <!-- Code Lines List -->
+          <div class="relative z-10 space-y-0">
+
+            <div class="code-line flex items-center" data-line="1">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">1</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text"><span class="text-vscode-keyword">def</span> <span class="text-vscode-fn">tu_van_ai</span>():</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="2">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">2</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-vscode-keyword">try</span>:</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="3">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">3</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;can_nang = <span class="text-vscode-fn">float</span>(entry_weight.get())</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="4">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">4</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;chieu_cao_cm = <span class="text-vscode-fn">float</span>(entry_height.get())</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="5">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">5</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 2. Tính toán BMI</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="6">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">6</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;chieu_cao_m = chieu_cao_cm / <span class="text-vscode-number">100</span></span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="7">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">7</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bmi = can_nang / (chieu_cao_m ** <span class="text-vscode-number">2</span>)</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="8">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">8</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Hiển thị chỉ số BMI</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="9">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">9</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lbl_bmi_result.config(text=<span class="text-vscode-string">f"Chỉ số BMI của bạn: {bmi:.2f}"</span>)</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="10">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">10</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 3. CÂU LỆNH RẼ NHÁNH: Xử lý sức khỏe và thời trang</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="11">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">11</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-vscode-keyword">if</span> bmi &lt; <span class="text-vscode-number">18.5</span>:</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="12">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">12</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;health = <span class="text-vscode-string">"SỨC KHỎE: Bạn đang bị THIẾU CÂN..."</span></span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="13">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">13</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fashion = <span class="text-vscode-string">"THỜI TRANG: Mẹo cho dáng người gầy..."</span></span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="14">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">14</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;color_code = <span class="text-vscode-string">"#d35400"</span> <span class="text-vscode-comment"># Màu cam</span></span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="15">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">15</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-vscode-keyword">elif</span> <span class="text-vscode-number">18.5</span> &lt;= bmi &lt; <span class="text-vscode-number">25</span>:</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="16">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">16</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;health = <span class="text-vscode-string">"SỨC KHỎE: Thể trạng BÌNH THƯỜNG..."</span></span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="17">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">17</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fashion = <span class="text-vscode-string">"THỜI TRANG: Mẹo cho dáng người cân đối..."</span></span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="18">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">18</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;color_code = <span class="text-vscode-string">"#27ae60"</span> <span class="text-vscode-comment"># Màu xanh lá</span></span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="19">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">19</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-vscode-keyword">elif</span> <span class="text-vscode-number">25</span> &lt;= bmi &lt; <span class="text-vscode-number">30</span>:</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="20">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">20</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;health = <span class="text-vscode-string">"SỨC KHỎE: Bạn đang THỪA CÂN..."</span></span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="21">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">21</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fashion = <span class="text-vscode-string">"THỜI TRANG: Mẹo cho dáng người đầy đặn..."</span></span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="22">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">22</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;color_code = <span class="text-vscode-string">"#f39c12"</span> <span class="text-vscode-comment"># Màu vàng cam</span></span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="23">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">23</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-vscode-keyword">else</span>:</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="24">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">24</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;health = <span class="text-vscode-string">"SỨC KHỎE: Bạn đang ở mức BÉO PHÌ..."</span></span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="25">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">25</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fashion = <span class="text-vscode-string">"THỜI TRANG: Mẹo phối đồ che khuyết điểm..."</span></span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="26">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">26</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;color_code = <span class="text-vscode-string">"#c0392b"</span> <span class="text-vscode-comment"># Màu đỏ</span></span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="27">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">27</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Cập nhật kết quả lên màn hình giao diện</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="28">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">28</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lbl_health_result.config(text=health, fg=color_code)</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="29">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">29</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lbl_fashion_result.config(text=fashion, fg=<span class="text-vscode-string">"#2980b9"</span>)</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="30">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">30</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-vscode-keyword">except</span> <span class="text-vscode-fn">ValueError</span>:</span>
+            </div>
+
+            <div class="code-line flex items-center" data-line="31">
+              <span class="w-8 text-right pr-4 text-slate-600 font-mono text-xs select-none flex-shrink-0">31</span>
+              <span class="w-6 text-amber-400 text-center flex-shrink-0 pointer-arrow hidden">➜</span>
+              <span class="text-vscode-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;messagebox.showerror(<span class="text-vscode-string">"Lỗi nhập liệu"</span>, <span class="text-vscode-string">"Vui lòng nhập số!"</span>)</span>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- JavaScript Visualizer Engine Engine -->
+  <script>
+    // State variables
+    let currentSteps = [];
+    let currentStepIndex = -1;
+    let isPlaying = false;
+    let autoPlayTimer = null;
+    let stepSpeed = 1000;
+
+    // Standard Full Health & Fashion texts matching Tkinter code
+    const HEALTH_TEXTS = {
+      underweight: "SỨC KHỎE: Bạn đang bị THIẾU CÂN.\n-> Cần ăn uống bổ sung thêm dinh dưỡng, ưu tiên thực phẩm giàu protein và calo.",
+      normal: "SỨC KHỎE: Thể trạng BÌNH THƯỜNG.\n=> Thật tuyệt vời! Hãy duy trì chế độ ăn uống và sinh hoạt lành mạnh hiện tại.",
+      overweight: "SỨC KHỎE: Bạn đang THỪA CÂN.\n=> Nên giảm bớt đường, tinh bột và bắt đầu tập luyện thể thao (30-45 phút mỗi ngày).",
+      obese: "SỨC KHỎE: Bạn đang ở mức BÉO PHÌ.\n-> Cần một kế hoạch giảm cân nghiêm ngặt để tránh rủi ro bệnh lý. Hãy tham khảo ý kiến bác sĩ."
+    };
+
+    const FASHION_TEXTS = {
+      underweight: "THỜI TRANG: Mẹo cho dáng người gầy.\n=> Nên chọn trang phục sáng màu, họa tiết kẻ ngang, hoặc mặc phối nhiều lớp (layering) với chất liệu vải dày dặn (len, tweed)...",
+      normal: "THỜI TRANG: Mẹo cho dáng người cân đối.\n=> Bạn hợp với hầu hết các phong cách! Quần áo vừa vặn (slim-fit) hoặc váy ôm nhẹ sẽ tôn lên vóc dáng...",
+      overweight: "THỜI TRANG: Mẹo cho dáng người đầy đặn.\n=> Ưu tiên trang phục màu tối, họa tiết kẻ dọc và áo cổ chữ V. Tránh đồ quá bó sát hoặc vải bóng...",
+      obese: "THỜI TRANG: Mẹo phối đồ che khuyết điểm.\n-> Chọn quần áo đơn sắc (monochrome) tối màu, chất liệu rủ nhẹ, form dáng vừa vặn. Áo khoác dáng dài..."
+    };
+
+    // On page load
+    window.onload = function() {
+      applyPreset(50, 167);
+    };
+
+    function onInputChange() {
+      if (isPlaying) pauseAutoPlay();
+      resetSimulation();
+    }
+
+    function applyPreset(weight, height) {
+      document.getElementById('entry_weight').value = weight;
+      document.getElementById('entry_height').value = height;
+      if (isPlaying) pauseAutoPlay();
+      startSimulation();
+    }
+
+    function closeMessageBox() {
+      document.getElementById('tk-messagebox').classList.add('hidden');
+    }
+
+    function updateSpeed(val) {
+      stepSpeed = parseInt(val);
+      document.getElementById('speed-label').textContent = (stepSpeed / 1000).toFixed(1) + ' giây / step';
+      if (isPlaying) {
+        pauseAutoPlay();
+        startAutoPlay();
+      }
+    }
+
+    // Generate Steps array dynamically based on User Inputs
+    function buildExecutionSteps() {
+      const weightRaw = document.getElementById('entry_weight').value.trim();
+      const heightRaw = document.getElementById('entry_height').value.trim();
+
+      const steps = [];
+
+      // Initial state
+      let vars = {
+        can_nang: undefined,
+        chieu_cao_cm: undefined,
+        chieu_cao_m: undefined,
+        bmi: undefined,
+        health: undefined,
+        fashion: undefined,
+        color_code: undefined
+      };
+
+      let guiState = {
+        bmiText: "Chỉ số BMI: Chưa có dữ liệu",
+        healthText: "(Chờ thực thi code...)",
+        healthColor: "#94a3b8",
+        fashionText: "(Chờ thực thi code...)",
+        fashionColor: "#38bdf8",
+        showError: false
+      };
+
+      // Step 1: def tu_van_ai():
+      steps.push({
+        line: 1,
+        desc: `Bắt đầu gọi hàm <strong class="text-indigo-400">tu_van_ai()</strong> khi người dùng nhấn nút Phân Tích.`,
+        evalStatus: { text: "CALL FUNCTION", class: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40" },
+        vars: { ...vars },
+        gui: { ...guiState }
+      });
+
+      // Step 2: try:
+      steps.push({
+        line: 2,
+        desc: `Bắt đầu khối <strong class="text-purple-400">try:</strong> để kiểm tra dữ liệu nhập có bị lỗi hay không.`,
+        evalStatus: { text: "TRY BLOCK", class: "bg-purple-500/20 text-purple-300 border-purple-500/40" },
+        vars: { ...vars },
+        gui: { ...guiState }
+      });
+
+      // Step 3: can_nang = float(entry_weight.get())
+      const weightNum = parseFloat(weightRaw);
+      const heightNum = parseFloat(heightRaw);
+
+      if (isNaN(weightNum)) {
+        steps.push({
+          line: 3,
+          desc: `Chuyển đổi dữ liệu nhập <code class="text-amber-300 font-mono">entry_weight.get() = "${weightRaw}"</code> sang float ➔ <strong class="text-rose-400">LỖI ValueError!</strong>`,
+          evalStatus: { text: "EXCEPTION!", class: "bg-rose-500/20 text-rose-300 border-rose-500/40" },
+          vars: { ...vars },
+          gui: { ...guiState }
+        });
+
+        // Jump to line 30 except ValueError:
+        steps.push({
+          line: 30,
+          desc: `Ngoại lệ xảy ra! Nhảy xuống khối <strong class="text-purple-400">except ValueError:</strong> để xử lý lỗi.`,
+          evalStatus: { text: "CATCH ERROR", class: "bg-purple-500/20 text-purple-300 border-purple-500/40" },
+          vars: { ...vars },
+          gui: { ...guiState }
+        });
+
+        // Step 31: messagebox.showerror(...)
+        steps.push({
+          line: 31,
+          desc: `Hiển thị hộp thoại cảnh báo Tkinter <strong class="text-rose-400">messagebox.showerror()</strong>.`,
+          evalStatus: { text: "SHOW ERROR MODAL", class: "bg-rose-500/20 text-rose-300 border-rose-500/40" },
+          vars: { ...vars },
+          gui: { ...guiState, showError: true }
+        });
+
+        return steps;
+      }
+
+      vars.can_nang = weightNum;
+      steps.push({
+        line: 3,
+        desc: `Đọc dữ liệu cân nặng từ giao diện: <code class="text-amber-300 font-mono">can_nang = float("${weightRaw}") = ${weightNum} kg</code>.`,
+        evalStatus: { text: "ASSIGNMENT", class: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
+        vars: { ...vars },
+        gui: { ...guiState }
+      });
+
+      // Step 4: chieu_cao_cm = float(entry_height.get())
+      if (isNaN(heightNum)) {
+        steps.push({
+          line: 4,
+          desc: `Chuyển đổi chiều cao <code class="text-amber-300 font-mono">entry_height.get() = "${heightRaw}"</code> sang float ➔ <strong class="text-rose-400">LỖI ValueError!</strong>`,
+          evalStatus: { text: "EXCEPTION!", class: "bg-rose-500/20 text-rose-300 border-rose-500/40" },
+          vars: { ...vars },
+          gui: { ...guiState }
+        });
+
+        steps.push({
+          line: 30,
+          desc: `Ngoại lệ xảy ra! Nhảy xuống khối <strong class="text-purple-400">except ValueError:</strong>`,
+          evalStatus: { text: "CATCH ERROR", class: "bg-purple-500/20 text-purple-300 border-purple-500/40" },
+          vars: { ...vars },
+          gui: { ...guiState }
+        });
+
+        steps.push({
+          line: 31,
+          desc: `Hiển thị cửa sổ cảnh báo lỗi <strong class="text-rose-400">messagebox.showerror()</strong>.`,
+          evalStatus: { text: "SHOW ERROR MODAL", class: "bg-rose-500/20 text-rose-300 border-rose-500/40" },
+          vars: { ...vars },
+          gui: { ...guiState, showError: true }
+        });
+
+        return steps;
+      }
+
+      vars.chieu_cao_cm = heightNum;
+      steps.push({
+        line: 4,
+        desc: `Đọc dữ liệu chiều cao từ giao diện: <code class="text-amber-300 font-mono">chieu_cao_cm = float("${heightRaw}") = ${heightNum} cm</code>.`,
+        evalStatus: { text: "ASSIGNMENT", class: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
+        vars: { ...vars },
+        gui: { ...guiState }
+      });
+
+      // Step 6: chieu_cao_m = chieu_cao_cm / 100
+      vars.chieu_cao_m = parseFloat((heightNum / 100).toFixed(4));
+      steps.push({
+        line: 6,
+        desc: `Đổi chiều cao sang mét: <code class="text-indigo-300 font-mono">chieu_cao_m = ${heightNum} / 100 = ${vars.chieu_cao_m} m</code>.`,
+        evalStatus: { text: "CALCULATION", class: "bg-sky-500/20 text-sky-300 border-sky-500/40" },
+        vars: { ...vars },
+        gui: { ...guiState }
+      });
+
+      // Step 7: bmi = can_nang / (chieu_cao_m ** 2)
+      const bmiCalc = weightNum / (vars.chieu_cao_m * vars.chieu_cao_m);
+      vars.bmi = parseFloat(bmiCalc.toFixed(2));
+      steps.push({
+        line: 7,
+        desc: `Tính chỉ số BMI: <code class="text-indigo-300 font-mono">bmi = ${weightNum} / (${vars.chieu_cao_m}²) = ${vars.bmi}</code>.`,
+        evalStatus: { text: "CALCULATION", class: "bg-sky-500/20 text-sky-300 border-sky-500/40" },
+        vars: { ...vars },
+        gui: { ...guiState }
+      });
+
+      // Step 9: lbl_bmi_result.config(...)
+      guiState.bmiText = `Chỉ số BMI của bạn: ${vars.bmi.toFixed(2)}`;
+      steps.push({
+        line: 9,
+        desc: `Cập nhật giao diện Tkinter Label BMI: <code class="text-emerald-300 font-mono">lbl_bmi_result.config(text="${guiState.bmiText}")</code>.`,
+        evalStatus: { text: "UPDATE GUI", class: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" },
+        vars: { ...vars },
+        gui: { ...guiState }
+      });
+
+      // Step 11+: IF - ELIF - ELSE Logic
+      const bmi = vars.bmi;
+
+      // Branch 1: if bmi < 18.5
+      const cond1 = bmi < 18.5;
+      steps.push({
+        line: 11,
+        desc: `Đánh giá điều kiện: <code class="text-amber-300 font-mono">if ${bmi} < 18.5</code> ➔ Kết quả: <strong class="${cond1 ? 'text-emerald-400' : 'text-rose-400'}">${cond1 ? 'TRUE (Đúng)' : 'FALSE (Sai)'}</strong>.`,
+        evalStatus: { text: cond1 ? "IF: TRUE" : "IF: FALSE", class: cond1 ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : "bg-rose-500/20 text-rose-300 border-rose-500/40" },
+        vars: { ...vars },
+        gui: { ...guiState }
+      });
+
+      if (cond1) {
+        vars.health = HEALTH_TEXTS.underweight;
+        steps.push({
+          line: 12,
+          desc: `Nhánh Gầy: Gán thông điệp lời khuyên sức khỏe cho biến <code class="text-amber-300 font-mono">health</code>.`,
+          evalStatus: { text: "ASSIGN HEALTH", class: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
+          vars: { ...vars },
+          gui: { ...guiState }
+        });
+
+        vars.fashion = FASHION_TEXTS.underweight;
+        steps.push({
+          line: 13,
+          desc: `Nhánh Gầy: Gán mẹo phối đồ thời trang cho biến <code class="text-amber-300 font-mono">fashion</code>.`,
+          evalStatus: { text: "ASSIGN FASHION", class: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
+          vars: { ...vars },
+          gui: { ...guiState }
+        });
+
+        vars.color_code = "#d35400";
+        steps.push({
+          line: 14,
+          desc: `Gán mã màu hiển thị: <code class="text-orange-400 font-mono">color_code = "#d35400" (Cam gầy)</code>. <br/><span class="text-xs text-slate-400 font-medium">➔ Bỏ qua toàn bộ khối elif/else phía sau!</span>`,
+          evalStatus: { text: "ASSIGN COLOR", class: "bg-orange-500/20 text-orange-300 border-orange-500/40" },
+          vars: { ...vars },
+          gui: { ...guiState }
+        });
+      } else {
+        // Branch 2: elif 18.5 <= bmi < 25
+        const cond2 = (18.5 <= bmi && bmi < 25);
+        steps.push({
+          line: 15,
+          desc: `Đánh giá điều kiện: <code class="text-amber-300 font-mono">elif 18.5 <= ${bmi} < 25</code> ➔ Kết quả: <strong class="${cond2 ? 'text-emerald-400' : 'text-rose-400'}">${cond2 ? 'TRUE (Đúng)' : 'FALSE (Sai)'}</strong>.`,
+          evalStatus: { text: cond2 ? "ELIF 1: TRUE" : "ELIF 1: FALSE", class: cond2 ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : "bg-rose-500/20 text-rose-300 border-rose-500/40" },
+          vars: { ...vars },
+          gui: { ...guiState }
+        });
+
+        if (cond2) {
+          vars.health = HEALTH_TEXTS.normal;
+          steps.push({
+            line: 16,
+            desc: `Nhánh Cân đối: Gán lời khuyên sức khỏe bình thường vào biến <code class="text-amber-300 font-mono">health</code>.`,
+            evalStatus: { text: "ASSIGN HEALTH", class: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
+            vars: { ...vars },
+            gui: { ...guiState }
+          });
+
+          vars.fashion = FASHION_TEXTS.normal;
+          steps.push({
+            line: 17,
+            desc: `Nhánh Cân đối: Gán mẹo thời trang slim-fit tôn dáng vào biến <code class="text-amber-300 font-mono">fashion</code>.`,
+            evalStatus: { text: "ASSIGN FASHION", class: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
+            vars: { ...vars },
+            gui: { ...guiState }
+          });
+
+          vars.color_code = "#27ae60";
+          steps.push({
+            line: 18,
+            desc: `Gán mã màu hiển thị: <code class="text-emerald-400 font-mono">color_code = "#27ae60" (Xanh lá cân đối)</code>. <br/><span class="text-xs text-slate-400 font-medium">➔ Bỏ qua các khối elif/else phía sau!</span>`,
+            evalStatus: { text: "ASSIGN COLOR", class: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" },
+            vars: { ...vars },
+            gui: { ...guiState }
+          });
+        } else {
+          // Branch 3: elif 25 <= bmi < 30
+          const cond3 = (25 <= bmi && bmi < 30);
+          steps.push({
+            line: 19,
+            desc: `Đánh giá điều kiện: <code class="text-amber-300 font-mono">elif 25 <= ${bmi} < 30</code> ➔ Kết quả: <strong class="${cond3 ? 'text-emerald-400' : 'text-rose-400'}">${cond3 ? 'TRUE (Đúng)' : 'FALSE (Sai)'}</strong>.`,
+            evalStatus: { text: cond3 ? "ELIF 2: TRUE" : "ELIF 2: FALSE", class: cond3 ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : "bg-rose-500/20 text-rose-300 border-rose-500/40" },
+            vars: { ...vars },
+            gui: { ...guiState }
+          });
+
+          if (cond3) {
+            vars.health = HEALTH_TEXTS.overweight;
+            steps.push({
+              line: 20,
+              desc: `Nhánh Thừa cân: Gán lời khuyên tập luyện & chế độ ăn vào biến <code class="text-amber-300 font-mono">health</code>.`,
+              evalStatus: { text: "ASSIGN HEALTH", class: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
+              vars: { ...vars },
+              gui: { ...guiState }
+            });
+
+            vars.fashion = FASHION_TEXTS.overweight;
+            steps.push({
+              line: 21,
+              desc: `Nhánh Thừa cân: Gán mẹo mặc đồ kẻ dọc & cổ chữ V vào biến <code class="text-amber-300 font-mono">fashion</code>.`,
+              evalStatus: { text: "ASSIGN FASHION", class: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
+              vars: { ...vars },
+              gui: { ...guiState }
+            });
+
+            vars.color_code = "#f39c12";
+            steps.push({
+              line: 22,
+              desc: `Gán mã màu hiển thị: <code class="text-amber-400 font-mono">color_code = "#f39c12" (Vàng cam thừa cân)</code>.`,
+              evalStatus: { text: "ASSIGN COLOR", class: "bg-amber-500/20 text-amber-300 border-amber-500/40" },
+              vars: { ...vars },
+              gui: { ...guiState }
+            });
+          } else {
+            // Branch 4: else
+            steps.push({
+              line: 23,
+              desc: `Tất cả điều kiện if/elif đều FALSE ➔ Tự động nhảy vào khối mặc định <strong class="text-rose-400">else: (Béo phì)</strong>.`,
+              evalStatus: { text: "ELSE BRANCH", class: "bg-rose-500/20 text-rose-300 border-rose-500/40" },
+              vars: { ...vars },
+              gui: { ...guiState }
+            });
+
+            vars.health = HEALTH_TEXTS.obese;
+            steps.push({
+              line: 24,
+              desc: `Nhánh Béo phì: Gán cảnh báo sức khỏe nghiêm ngặt vào biến <code class="text-amber-300 font-mono">health</code>.`,
+              evalStatus: { text: "ASSIGN HEALTH", class: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
+              vars: { ...vars },
+              gui: { ...guiState }
+            });
+
+            vars.fashion = FASHION_TEXTS.obese;
+            steps.push({
+              line: 25,
+              desc: `Nhánh Béo phì: Gán mẹo phối đồ đơn sắc monochrome che khuyết điểm vào biến <code class="text-amber-300 font-mono">fashion</code>.`,
+              evalStatus: { text: "ASSIGN FASHION", class: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
+              vars: { ...vars },
+              gui: { ...guiState }
+            });
+
+            vars.color_code = "#c0392b";
+            steps.push({
+              line: 26,
+              desc: `Gán mã màu hiển thị: <code class="text-rose-400 font-mono">color_code = "#c0392b" (Đỏ béo phì)</code>.`,
+              evalStatus: { text: "ASSIGN COLOR", class: "bg-rose-500/20 text-rose-300 border-rose-500/40" },
+              vars: { ...vars },
+              gui: { ...guiState }
+            });
+          }
+        }
+      }
+
+      // Step 28: lbl_health_result.config(...)
+      guiState.healthText = vars.health;
+      guiState.healthColor = vars.color_code;
+      steps.push({
+        line: 28,
+        desc: `Cập nhật Tkinter Label Sức Khỏe: <code class="text-emerald-300 font-mono">lbl_health_result.config(text=health, fg="${vars.color_code}")</code>.`,
+        evalStatus: { text: "UPDATE GUI", class: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" },
+        vars: { ...vars },
+        gui: { ...guiState }
+      });
+
+      // Step 29: lbl_fashion_result.config(...)
+      guiState.fashionText = vars.fashion;
+      guiState.fashionColor = "#2980b9";
+      steps.push({
+        line: 29,
+        desc: `Cập nhật Tkinter Label Thời Trang: <code class="text-emerald-300 font-mono">lbl_fashion_result.config(text=fashion, fg="#2980b9")</code>.`,
+        evalStatus: { text: "EXECUTION DONE", class: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40" },
+        vars: { ...vars },
+        gui: { ...guiState }
+      });
+
+      return steps;
+    }
+
+    function startSimulation() {
+      resetSimulation();
+      currentSteps = buildExecutionSteps();
+      currentStepIndex = 0;
+      renderStep(currentStepIndex);
+    }
+
+    function renderStep(index) {
+      if (index < 0 || index >= currentSteps.length) return;
+
+      const step = currentSteps[index];
+
+      // Update Step Counter Badge
+      document.getElementById('step-counter-badge').textContent = `Bước: ${index + 1} / ${currentSteps.length}`;
+      
+      // Update Progress Bar
+      const progressPercent = ((index + 1) / currentSteps.length) * 100;
+      document.getElementById('progress-bar').style.width = progressPercent + '%';
+
+      // Update Prev / Next Buttons Status
+      document.getElementById('btn-prev').disabled = index === 0;
+      document.getElementById('btn-next').disabled = index === currentSteps.length - 1;
+
+      // Update Explanation Console
+      document.getElementById('step-explanation').innerHTML = step.desc;
+
+      const evalBadge = document.getElementById('eval-status-badge');
+      evalBadge.textContent = step.evalStatus.text;
+      evalBadge.className = `px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${step.evalStatus.class}`;
+
+      // Move Cursor Highlight on Python Editor
+      highlightCodeLine(step.line);
+
+      // Render Variable Watcher Table
+      renderVariableWatcher(step.vars);
+
+      // Render Simulated GUI Tkinter App
+      renderTkinterGUI(step.gui);
+    }
+
+    function highlightCodeLine(lineNumber) {
+      const codeContainer = document.getElementById('code-container');
+      const cursor = document.getElementById('active-line-cursor');
+      const allLines = document.querySelectorAll('.code-line');
+
+      allLines.forEach(line => {
+        const arrow = line.querySelector('.pointer-arrow');
+        if (line.getAttribute('data-line') == lineNumber) {
+          arrow.classList.remove('hidden');
+          
+          // Calculate offset position for active line overlay
+          const lineTop = line.offsetTop;
+          cursor.style.top = lineTop + 'px';
+          cursor.classList.remove('hidden');
+
+          // Scroll editor dynamically to keep line in view
+          const containerHeight = codeContainer.clientHeight;
+          if (lineTop < codeContainer.scrollTop || lineTop > (codeContainer.scrollTop + containerHeight - 40)) {
+            codeContainer.scrollTo({
+              top: lineTop - (containerHeight / 2),
+              behavior: 'smooth'
+            });
+          }
+        } else {
+          arrow.classList.add('hidden');
+        }
+      });
+    }
+
+    function renderVariableWatcher(vars) {
+      const tbody = document.getElementById('var-watcher-tbody');
+      tbody.innerHTML = '';
+
+      const varDefs = [
+        { name: 'can_nang', type: 'float', val: vars.can_nang !== undefined ? `${vars.can_nang} kg` : undefined },
+        { name: 'chieu_cao_cm', type: 'float', val: vars.chieu_cao_cm !== undefined ? `${vars.chieu_cao_cm} cm` : undefined },
+        { name: 'chieu_cao_m', type: 'float', val: vars.chieu_cao_m !== undefined ? `${vars.chieu_cao_m} m` : undefined },
+        { name: 'bmi', type: 'float', val: vars.bmi !== undefined ? `${vars.bmi}` : undefined },
+        { name: 'health', type: 'str', val: vars.health !== undefined ? `"${vars.health.split('\n')[0]}..."` : undefined },
+        { name: 'fashion', type: 'str', val: vars.fashion !== undefined ? `"${vars.fashion.split('\n')[0]}..."` : undefined },
+        { name: 'color_code', type: 'str', val: vars.color_code !== undefined ? vars.color_code : undefined, isColor: true }
+      ];
+
+      varDefs.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = item.val !== undefined ? 'bg-slate-900/90 text-slate-200 hover:bg-slate-800/80 transition' : 'text-slate-600';
+        
+        let valDisplay = item.val !== undefined ? item.val : '<span class="text-slate-600 italic">None</span>';
+        if (item.isColor && item.val) {
+          valDisplay = `<span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded-full border border-white/20 inline-block" style="background-color: ${item.val}"></span> <code>${item.val}</code></span>`;
+        }
+
+        tr.innerHTML = `
+          <td class="py-1.5 px-3 font-bold text-indigo-300">${item.name}</td>
+          <td class="py-1.5 px-3 text-slate-400 text-[11px]">${item.type}</td>
+          <td class="py-1.5 px-3">${valDisplay}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderTkinterGUI(gui) {
+      // BMI Label
+      const lblBmi = document.getElementById('lbl_bmi_result');
+      lblBmi.textContent = gui.bmiText;
+      if (gui.bmiText.includes(':')) {
+        lblBmi.classList.add('text-indigo-400');
+      } else {
+        lblBmi.classList.remove('text-indigo-400');
+      }
+
+      // Health Label
+      const lblHealth = document.getElementById('lbl_health_result');
+      lblHealth.textContent = gui.healthText;
+      lblHealth.style.color = gui.healthColor;
+
+      // Fashion Label
+      const lblFashion = document.getElementById('lbl_fashion_result');
+      lblFashion.textContent = gui.fashionText;
+      lblFashion.style.color = gui.fashionColor;
+
+      // Modal Error Box
+      const msgBox = document.getElementById('tk-messagebox');
+      if (gui.showError) {
+        msgBox.classList.remove('hidden');
+      } else {
+        msgBox.classList.add('hidden');
+      }
+    }
+
+    function stepNext() {
+      if (currentSteps.length === 0) {
+        startSimulation();
+        return;
+      }
+      if (currentStepIndex < currentSteps.length - 1) {
+        currentStepIndex++;
+        renderStep(currentStepIndex);
+      } else {
+        pauseAutoPlay();
+      }
+    }
+
+    function stepPrev() {
+      if (currentStepIndex > 0) {
+        currentStepIndex--;
+        renderStep(currentStepIndex);
+      }
+    }
+
+    function togglePlay() {
+      if (isPlaying) {
+        pauseAutoPlay();
+      } else {
+        startAutoPlay();
+      }
+    }
+
+    function startAutoPlay() {
+      if (currentSteps.length === 0 || currentStepIndex >= currentSteps.length - 1) {
+        startSimulation();
+      }
+      isPlaying = true;
+      document.getElementById('play-icon').className = 'fa-solid fa-pause text-sm';
+      document.getElementById('play-text').textContent = 'Tạm Dừng';
+
+      autoPlayTimer = setInterval(() => {
+        if (currentStepIndex < currentSteps.length - 1) {
+          stepNext();
+        } else {
+          pauseAutoPlay();
+        }
+      }, stepSpeed);
+    }
+
+    function pauseAutoPlay() {
+      isPlaying = false;
+      if (autoPlayTimer) clearInterval(autoPlayTimer);
+      document.getElementById('play-icon').className = 'fa-solid fa-play text-sm';
+      document.getElementById('play-text').textContent = 'Chạy Auto';
+    }
+
+    function resetSimulation() {
+      pauseAutoPlay();
+      currentSteps = [];
+      currentStepIndex = -1;
+      
+      document.getElementById('step-counter-badge').textContent = 'Bước: 0 / 0';
+      document.getElementById('progress-bar').style.width = '0%';
+      document.getElementById('btn-prev').disabled = true;
+      document.getElementById('btn-next').disabled = false;
+      
+      document.getElementById('step-explanation').innerHTML = 'Nhấn nút <strong class="text-sky-400 mx-1">Phân Tích & Tư Vấn</strong> hoặc <strong class="text-indigo-400 mx-1">Chạy Auto</strong> để bắt đầu mô phỏng từng dòng code Python.';
+      
+      const evalBadge = document.getElementById('eval-status-badge');
+      evalBadge.textContent = 'Sẵn sàng';
+      evalBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-800 text-slate-400 border border-slate-700';
+
+      document.getElementById('active-line-cursor').classList.add('hidden');
+      document.querySelectorAll('.pointer-arrow').forEach(el => el.classList.add('hidden'));
+
+      // Reset Table Watcher
+      document.getElementById('var-watcher-tbody').innerHTML = `
+        <tr class="text-slate-500">
+          <td colspan="3" class="py-4 text-center font-sans">Chưa chạy hàm tu_van_ai()</td>
+        </tr>
+      `;
+
+      // Reset GUI Labels
+      renderTkinterGUI({
+        bmiText: "Chỉ số BMI: Chưa có dữ liệu",
+        healthText: "(Chờ thực thi code...)",
+        healthColor: "#94a3b8",
+        fashionText: "(Chờ thực thi code...)",
+        fashionColor: "#38bdf8",
+        showError: false
+      });
+    }
+  </script>
+</body>
+</html>
