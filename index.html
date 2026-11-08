@@ -143,22 +143,25 @@
         }
 
         .message {
-            margin-top: 15px;
-            padding: 10px;
+            margin-bottom: 18px;
+            padding: 12px;
             border-radius: 6px;
             font-size: 0.9rem;
             display: none;
+            line-height: 1.4;
         }
 
         .message.success {
             background-color: #d4edda;
             color: #155724;
+            border: 1px solid #c3e6cb;
             display: block;
         }
 
         .message.error {
             background-color: #f8d7da;
             color: #721c24;
+            border: 1px solid #f5c6cb;
             display: block;
         }
 
@@ -213,24 +216,25 @@ import datetime
 
 class AuthSystem:
     def __init__(self):
-        # Giả lập cơ sở dữ liệu người dùng
+        # Cơ sở dữ liệu người dùng
         self.users_db = {}
-        
+
     def register(self, username, password):
         if username in self.users_db:
-            return False, "Tài khoản đã tồn tại!"
+            return False, "❌ Tài khoản này đã tồn tại!"
         self.users_db[username] = password
-        return True, "Đăng ký thành công!"
+        return True, "✅ Đăng ký thành công! Hãy đăng nhập."
 
     def login(self, username, password, storage_history):
-        # Logic kiểm tra thông tin nhập đúng
+        # 1. Kiểm tra tài khoản tồn tại
         if username not in self.users_db:
-            return False, "Tài khoản không tồn tại!"
+            return False, "❌ Tài khoản không tồn tại!"
             
+        # 2. Kiểm tra mật khẩu
         if self.users_db[username] != password:
-            return False, "Mật khẩu không chính xác!"
+            return False, "❌ Mật khẩu không chính xác!"
 
-        # Lưu lịch sử khi nhập đúng thông tin
+        # 3. Đúng thông tin -> Ghi nhận Lịch sử vào storage
         log_entry = {
             "user": username,
             "timestamp": str(datetime.datetime.now()),
@@ -238,7 +242,7 @@ class AuthSystem:
         }
         storage_history.append(log_entry)
         
-        return True, f"Chào mừng {username} đã truy cập!"
+        return True, f"🎉 Đăng nhập thành công! Chào {username}."
             </code></pre>
         </div>
     </div>
@@ -246,10 +250,11 @@ class AuthSystem:
     <!-- Nửa bên phải: Form Đăng nhập & Đăng ký -->
     <div class="right-panel">
         <div class="tab-header">
-            <button class="tab-btn active" onclick="switchTab('login')">Đăng Nhập</button>
-            <button class="tab-btn" onclick="switchTab('register')">Đăng Ký</button>
+            <button class="tab-btn active" id="btn-tab-login" onclick="switchTab('login')">Đăng Nhập</button>
+            <button class="tab-btn" id="btn-tab-reg" onclick="switchTab('register')">Đăng Ký</button>
         </div>
 
+        <!-- Vùng hiển thị thông báo -->
         <div id="auth-message" class="message"></div>
 
         <!-- Form Đăng Nhập -->
@@ -275,12 +280,12 @@ class AuthSystem:
                 <label>Mật khẩu mới</label>
                 <input type="password" id="reg-pass" required placeholder="Tạo mật khẩu">
             </div>
-            <button type="submit" class="btn-submit">Đăng Ký</button>
+            <button type="submit" class="btn-submit">Đăng Ký Tài Khoản</button>
         </form>
 
         <!-- Xem Lịch Sử Đăng Nhập từ Storage -->
         <div class="history-box">
-            <h4>📜 Lịch sử đăng nhập (LocalStorage):</h4>
+            <h4>📜 Lịch sử đăng nhập thành công (localStorage):</h4>
             <ul id="history-list" class="history-list">
                 <li>Chưa có lịch sử đăng nhập.</li>
             </ul>
@@ -289,32 +294,34 @@ class AuthSystem:
 </div>
 
 <script>
-    // Kích hoạt Highlight.js để làm đẹp code Python
     hljs.highlightAll();
 
-    // 1. Quản lý chuyển tab Đăng Nhập / Đăng Ký
-    function switchTab(tab) {
+    // 1. Chuyển đổi qua lại giữa Tab Đăng nhập và Đăng ký
+    function switchTab(tab, clearMsg = true) {
         const loginForm = document.getElementById('login-form');
         const regForm = document.getElementById('register-form');
-        const buttons = document.querySelectorAll('.tab-btn');
+        const btnLogin = document.getElementById('btn-tab-login');
+        const btnReg = document.getElementById('btn-tab-reg');
         const msg = document.getElementById('auth-message');
-        
-        msg.style.display = 'none';
+
+        if (clearMsg) {
+            msg.style.display = 'none';
+        }
 
         if (tab === 'login') {
             loginForm.style.display = 'block';
             regForm.style.display = 'none';
-            buttons[0].classList.add('active');
-            buttons[1].classList.remove('active');
+            btnLogin.classList.add('active');
+            btnReg.classList.remove('active');
         } else {
             loginForm.style.display = 'none';
             regForm.style.display = 'block';
-            buttons[1].classList.add('active');
-            buttons[0].classList.remove('active');
+            btnReg.classList.add('active');
+            btnLogin.classList.remove('active');
         }
     }
 
-    // 2. Khởi tạo dữ liệu người dùng & Lịch sử trong Web Storage (localStorage)
+    // 2. Các hàm quản lý localStorage
     function getUsers() {
         return JSON.parse(localStorage.getItem('app_users')) || {};
     }
@@ -333,7 +340,7 @@ class AuthSystem:
             username: username,
             time: new Date().toLocaleString('vi-VN')
         };
-        history.unshift(logEntry); // Thêm vào đầu danh sách
+        history.unshift(logEntry);
         localStorage.setItem('login_history', JSON.stringify(history));
         renderHistory();
     }
@@ -350,13 +357,14 @@ class AuthSystem:
         ).join('');
     }
 
+    // Hiển thị thông báo với giao diện rõ ràng
     function showMessage(text, isSuccess) {
         const msg = document.getElementById('auth-message');
         msg.textContent = text;
         msg.className = `message ${isSuccess ? 'success' : 'error'}`;
     }
 
-    // 3. Xử lý Đăng Ký
+    // 3. Xử lý logic Form Đăng Ký
     document.getElementById('register-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const username = document.getElementById('reg-user').value.trim();
@@ -364,18 +372,26 @@ class AuthSystem:
 
         const users = getUsers();
 
+        // Kiểm tra xem trùng username chưa
         if (users[username]) {
-            showMessage('Tài khoản đã tồn tại!', false);
+            showMessage('❌ Tài khoản đã tồn tại! Vui lòng chọn tên khác.', false);
             return;
         }
 
+        // Lưu tài khoản mới
         users[username] = password;
         saveUsers(users);
-        showMessage('Đăng ký thành công! Hãy chuyển sang Đăng Nhập.', true);
+
+        // Chuyển sang Tab Đăng Nhập và thông báo rõ ràng
+        switchTab('login', false); 
+        document.getElementById('login-user').value = username;
+        document.getElementById('login-pass').value = '';
+        showMessage(`✅ Đăng ký tài khoản "${username}" thành công! Mời bạn nhập mật khẩu để đăng nhập.`, true);
+        
         this.reset();
     });
 
-    // 4. Xử lý Đăng Nhập (Mô phỏng điều kiện nhập đúng mới ghi Storage)
+    // 4. Xử lý logic Form Đăng Nhập
     document.getElementById('login-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const username = document.getElementById('login-user').value.trim();
@@ -383,24 +399,26 @@ class AuthSystem:
 
         const users = getUsers();
 
-        // Kiểm tra logic tài khoản
+        // TH1: Tài khoản không tồn tại
         if (!users[username]) {
-            showMessage('Tài khoản không tồn tại!', false);
+            showMessage('❌ Tài khoản không tồn tại! Vui lòng kiểm tra lại hoặc chuyển sang tab Đăng Ký.', false);
             return;
         }
 
+        // TH2: Mật khẩu sai
         if (users[username] !== password) {
-            showMessage('Mật khẩu không chính xác!', false);
+            showMessage('❌ Mật khẩu không chính xác! Vui lòng thử lại.', false);
             return;
         }
 
-        // ĐĂNG NHẬP THÀNH CÔNG: Ghi lịch sử vào Storage
+        // TH3: Đăng nhập thành công -> Ghi vào storage.js (localStorage)
         saveLoginHistory(username);
-        showMessage(`Đăng nhập thành công! Chào mừng ${username}.`, true);
-        this.reset();
+        showMessage(`🎉 Đăng nhập thành công! Chào mừng ${username} trở lại. Lịch sử truy cập đã được lưu.`, true);
+        
+        document.getElementById('login-pass').value = '';
     });
 
-    // Hiển thị lịch sử khi tải trang
+    // Hiển thị lịch sử ngay khi trang load
     renderHistory();
 </script>
 
